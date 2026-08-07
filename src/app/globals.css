@@ -86,7 +86,7 @@
   --muted-foreground: oklch(0.5392 0.0122 106.8013);
   --accent: oklch(0.9380 0.0252 106.8749);
   --accent-foreground: oklch(0.2813 0.0325 113.3956);
-  --destructive: oklch(0.2174 0.0019 106.5582);
+  --destructive: oklch(0.6860 0.2056 34.8115);
   --border: oklch(0.8892 0.0108 106.6170);
   --input: oklch(0.7725 0.0264 111.8925);
   --ring: oklch(0.6901 0.1575 54.2251);
@@ -188,13 +188,16 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
     letter-spacing: var(--tracking-normal);
   }
+
   html {
     @apply font-sans;
   }
+
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;

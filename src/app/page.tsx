@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Next.js Starter Fullstack",
@@ -6,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 const page = () => {
-  return <section className="grid h-dvh place-items-center"></section>;
+  return redirect("/auth/login");
 };
 
 export default page;
