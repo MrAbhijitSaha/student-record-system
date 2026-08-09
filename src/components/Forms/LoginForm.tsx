@@ -10,7 +10,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 
-import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { EyeClosedIcon, EyeIcon } from "lucide-react";
 import { Button } from "../shadcnui/button";
 import {
   Dialog,
@@ -26,7 +26,7 @@ const isSafeRedirect = (dest: string): boolean =>
   dest.startsWith("/") && !dest.startsWith("//") && !dest.includes("://");
 
 const LoginForm = ({ returnTo }: { returnTo?: string }) => {
-  const { replace } = useRouter();
+  const { replace, refresh } = useRouter();
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -106,6 +106,7 @@ const LoginForm = ({ returnTo }: { returnTo?: string }) => {
       }
 
       replace(destination as Route);
+      refresh();
     } catch (error) {
       console.error(error);
       toast.error("Login failed. Please try again.");
@@ -137,7 +138,7 @@ const LoginForm = ({ returnTo }: { returnTo?: string }) => {
           onClick={() => setShowPassword(!showPassword)}
           className="text-foreground absolute top-8 right-3 bg-transparent p-0 hover:bg-transparent">
           {showPassword ?
-            <EyeOffIcon />
+            <EyeClosedIcon />
           : <EyeIcon />}
         </Button>
       </div>

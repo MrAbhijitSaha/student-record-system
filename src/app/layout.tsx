@@ -1,8 +1,10 @@
+import Footer from "@/components/Footer";
 import Header from "@/components/Header/Header";
 import ThemeProvider from "@/components/Providers/ThemeProvider";
 import { notoSansHeading, nunitoSans } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { ReactNode } from "react";
+// @ts-expect-error CSS side-effect imports are handled by Next.js at build time.
 import "./globals.css";
 
 type RootLayoutProps = Readonly<{
@@ -28,6 +30,7 @@ const RootLayout = ({ children }: RootLayoutProps) => {
           <Header />
 
           <main className="">{children}</main>
+          <Footer />
         </ThemeProvider>
       </body>
     </html>

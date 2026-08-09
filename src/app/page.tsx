@@ -1,13 +1,15 @@
-import { Metadata } from "next";
-import { redirect } from "next/navigation";
+import Features from "@/components/landing/Features";
+import Hero from "@/components/landing/Hero";
+import HowItWorks from "@/components/landing/HowItWorks";
 
-export const metadata: Metadata = {
-  title: "Next.js Starter Fullstack",
-  description: "Production grade Fullstack Next.js starter template",
+const HomePage = () => {
+  return (
+    <div className="mx-auto max-w-6xl px-6 py-20">
+      <Hero />
+      <Features />
+      <HowItWorks />
+    </div>
+  );
 };
 
-const page = () => {
-  return redirect("/auth/login");
-};
-
-export default page;
+export default HomePage;

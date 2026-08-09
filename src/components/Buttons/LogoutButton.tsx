@@ -4,6 +4,7 @@ import { authClient } from "@/lib/auth-client";
 import { LogOutIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+
 import { Button } from "../shadcnui/button";
 
 const LogoutButton = () => {
@@ -16,13 +17,15 @@ const LogoutButton = () => {
       if (error) {
         console.error(error);
         toast.error("Failed to log out. Please try again.");
-      } else {
-        toast.success("Logged out successfully.");
-        replace("/");
-        refresh();
+        return;
       }
-    } catch (err) {
-      console.error(err);
+
+      toast.success("Logged out successfully.");
+
+      replace("/");
+      refresh();
+    } catch (error) {
+      console.error(error);
       toast.error("Failed to log out. Please try again.");
     }
   };
@@ -31,8 +34,9 @@ const LogoutButton = () => {
     <Button
       type="button"
       variant="destructive"
+      className="rounded"
       onClick={logoutHandler}>
-      <LogOutIcon />
+      <LogOutIcon className="size-4" />
       Logout
     </Button>
   );

@@ -1,7 +1,7 @@
 import LoginForm from "@/components/Forms/LoginForm";
 import { Card, CardContent } from "@/components/shadcnui/card";
 
-const page = () => {
+const page = async () => {
   return (
     <div className="flex h-dvh w-full flex-col items-center justify-evenly md:flex-row">
       <div className="w-full text-center md:w-[50%]">
