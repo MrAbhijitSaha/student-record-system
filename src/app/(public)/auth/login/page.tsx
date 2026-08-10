@@ -4,7 +4,15 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-const page = async () => {
+type LoginPageProps = {
+  searchParams: Promise<{
+    returnTo?: string;
+  }>;
+};
+
+const page = async ({ searchParams }: LoginPageProps) => {
+  const { returnTo } = await searchParams;
+
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -41,7 +49,7 @@ const page = async () => {
 
         <Card className="bg-transparent backdrop-blur">
           <CardContent>
-            <LoginForm />
+            <LoginForm returnTo={returnTo} />
           </CardContent>
         </Card>
       </div>

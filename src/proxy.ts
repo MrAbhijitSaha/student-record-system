@@ -10,7 +10,14 @@ export async function proxy(request: NextRequest) {
 
   // Not logged in
   if (!session) {
-    return NextResponse.redirect(new URL("/auth/login", request.url));
+    const loginUrl = new URL("/auth/login", request.url);
+
+    loginUrl.searchParams.set(
+      "returnTo",
+      `${request.nextUrl.pathname}${request.nextUrl.search}`,
+    );
+
+    return NextResponse.redirect(loginUrl);
   }
 
   // Admin routes

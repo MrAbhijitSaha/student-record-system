@@ -22,8 +22,34 @@ import {
 } from "../shadcnui/dialog";
 import FormControllerField from "./FormControllerField";
 
-const isSafeRedirect = (dest: string): boolean =>
-  dest.startsWith("/") && !dest.startsWith("//") && !dest.includes("://");
+const getSafeRedirect = (
+  returnTo: string | undefined,
+  role: string,
+): string => {
+  const defaultRoute = `/${role}/profile`;
+
+  if (!returnTo) {
+    return defaultRoute;
+  }
+
+  // Prevent external redirects
+  if (
+    !returnTo.startsWith("/") ||
+    returnTo.startsWith("//") ||
+    returnTo.includes("://")
+  ) {
+    return defaultRoute;
+  }
+
+  // Only allow routes belonging to the user's role
+  const allowedPrefix = `/${role}`;
+
+  if (returnTo === allowedPrefix || returnTo.startsWith(`${allowedPrefix}/`)) {
+    return returnTo;
+  }
+
+  return defaultRoute;
+};
 
 const LoginForm = ({ returnTo }: { returnTo?: string }) => {
   const { replace, refresh } = useRouter();
@@ -80,30 +106,14 @@ const LoginForm = ({ returnTo }: { returnTo?: string }) => {
 
       reset();
 
-      let destination: string;
+      const role = session.user.role;
 
-      // Respect a safe returnTo URL if one exists
-      if (returnTo && isSafeRedirect(returnTo)) {
-        destination = returnTo;
-      } else {
-        switch (session.user.role) {
-          case "admin":
-            destination = "/admin/dashboard";
-            break;
-
-          case "student":
-            destination = "/student/profile";
-            break;
-
-          case "teacher":
-            destination = "/teacher/profile";
-            break;
-
-          default:
-            toast.error("Your account does not have a valid role.");
-            return;
-        }
+      if (role !== "admin" && role !== "student" && role !== "teacher") {
+        toast.error("Your account does not have a valid role.");
+        return;
       }
+
+      const destination = getSafeRedirect(returnTo, role);
 
       replace(destination as Route);
       refresh();
