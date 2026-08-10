@@ -103,8 +103,8 @@ model Student {
   admissionDate DateTime?
   status        String
 
-  totalFees Decimal
-  dueFees   Decimal
+  totalFees Int
+  dueFees   Int
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
