@@ -135,6 +135,8 @@ const LoginForm = ({ returnTo }: { returnTo?: string }) => {
           placeholder="Enter your password"
         />
         <Button
+          aria-label={showPassword ? "Hide password" : "Show password"}
+          aria-pressed={showPassword}
           onClick={() => setShowPassword(!showPassword)}
           className="text-foreground absolute top-8 right-3 bg-transparent p-0 hover:bg-transparent">
           {showPassword ?
@@ -151,8 +153,8 @@ const LoginForm = ({ returnTo }: { returnTo?: string }) => {
           <DialogContent showCloseButton={false}>
             <DialogHeader>
               <DialogDescription>
-                Sorry, you can not allow to reset your password. please contact
-                with authority.
+                Password reset is not available. Please contact the
+                administrator.
               </DialogDescription>
             </DialogHeader>
             <DialogClose className="text-primary bg-background p-2">
