@@ -1,8 +1,6 @@
 import { ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
-import { Button } from "@/components/shadcnui/button";
-
 const Hero = () => {
   return (
     <section className="border-b">
@@ -25,9 +23,11 @@ const Hero = () => {
             academic information.
           </p>
 
-          <Button className="rounded p-6">
-            <Link href="/auth/login">Login to Your Account </Link>
-          </Button>
+          <Link
+            href="/auth/login"
+            className="bg-primary rounded p-4">
+            Login to Your Account{" "}
+          </Link>
         </div>
       </div>
     </section>
