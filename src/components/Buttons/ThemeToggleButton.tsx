@@ -9,6 +9,7 @@ const ThemeToggleButton = () => {
   return (
     <button
       type="button"
+      aria-label="Toggle colour theme"
       onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
       className="relative flex cursor-pointer items-center">
       <SunDimIcon
