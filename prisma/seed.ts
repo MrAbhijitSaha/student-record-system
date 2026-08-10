@@ -11,6 +11,46 @@ type CreateUserInput = {
   role: UserRole;
 };
 
+/**
+ * --------------------------------------------------------------------------
+ * ENVIRONMENT VARIABLES
+ * --------------------------------------------------------------------------
+ */
+
+const adminEmail = process.env.ADMIN_EMAIL;
+const adminPassword = process.env.ADMIN_PASSWORD;
+const adminUsername = process.env.ADMIN_USERNAME;
+
+const studentPassword = process.env.STUDENT_PASSWORD;
+const teacherPassword = process.env.TEACHER_PASSWORD;
+
+if (!adminEmail || !adminPassword || !adminUsername) {
+  throw new Error(
+    "ADMIN_EMAIL, ADMIN_PASSWORD and ADMIN_USERNAME must be defined in .env",
+  );
+}
+
+if (!studentPassword) {
+  throw new Error("STUDENT_PASSWORD must be defined in .env");
+}
+
+if (!teacherPassword) {
+  throw new Error("TEACHER_PASSWORD must be defined in .env");
+}
+
+/**
+ * --------------------------------------------------------------------------
+ * CREATE USER
+ * --------------------------------------------------------------------------
+ *
+ * Better Auth handles:
+ * - Password hashing
+ * - User creation
+ * - Account creation
+ *
+ * If the user already exists, we update the username/displayUsername/role.
+ */
+
 async function createUser({
   name,
   email,
@@ -18,14 +58,15 @@ async function createUser({
   password,
   role,
 }: CreateUserInput) {
-  // Check by email first
   let user = await prisma.user.findUnique({
     where: {
       email,
     },
   });
 
-  // If user already exists, update username/role
+  /**
+   * User already exists
+   */
   if (user) {
     user = await prisma.user.update({
       where: {
@@ -43,8 +84,9 @@ async function createUser({
     return user;
   }
 
-  // Create user through Better Auth.
-  // Better Auth handles password hashing and Account creation.
+  /**
+   * Create user through Better Auth
+   */
   const result = await auth.api.signUpEmail({
     body: {
       name,
@@ -58,7 +100,9 @@ async function createUser({
     throw new Error(`Failed to create user: ${email}`);
   }
 
-  // Set username + role explicitly
+  /**
+   * Set application-specific fields
+   */
   user = await prisma.user.update({
     where: {
       id: result.user.id,
@@ -75,30 +119,20 @@ async function createUser({
   return user;
 }
 
-/*
-|--------------------------------------------------------------------------
-| ADMIN
-|--------------------------------------------------------------------------
-*/
+/**
+ * --------------------------------------------------------------------------
+ * ADMIN
+ * --------------------------------------------------------------------------
+ */
 
 async function seedAdmin() {
   console.log("\n👑 Creating admin...");
 
-  const email = process.env.ADMIN_EMAIL;
-  const password = process.env.ADMIN_PASSWORD;
-  const username = process.env.ADMIN_USERNAME;
-
-  if (!email || !password || !username) {
-    throw new Error(
-      "ADMIN_EMAIL, ADMIN_PASSWORD and ADMIN_USERNAME must be defined in .env",
-    );
-  }
-
   const admin = await createUser({
     name: "Administrator",
-    email,
-    username,
-    password,
+    email: adminEmail,
+    username: adminUsername,
+    password: adminPassword,
     role: "admin",
   });
 
@@ -107,77 +141,78 @@ async function seedAdmin() {
   return admin;
 }
 
-/*
-|--------------------------------------------------------------------------
-| STUDENTS
-|--------------------------------------------------------------------------
-*/
+/**
+ * --------------------------------------------------------------------------
+ * STUDENTS
+ * --------------------------------------------------------------------------
+ *
+ * totalFees and dueFees are stored in minor currency units (paise).
+ *
+ * Example:
+ * ₹50,000.00 -> 5,000,000 paise
+ * ₹12,000.00 -> 1,200,000 paise
+ */
+
+const students = [
+  {
+    name: "Rahul Sharma",
+    username: "rahul.student",
+    email: "rahul.student@example.com",
+    fullName: "Rahul Sharma",
+    studentId: "STU001",
+    course: "Computer Science",
+    phone: "9876543210",
+    address: "Kolkata, West Bengal",
+    dateOfBirth: new Date("2004-05-15"),
+    gender: "Male",
+    admissionDate: new Date("2025-07-01"),
+    status: "active",
+    totalFees: 5_000_000,
+    dueFees: 1_200_000,
+  },
+  {
+    name: "Priya Das",
+    username: "priya.student",
+    email: "priya.student@example.com",
+    fullName: "Priya Das",
+    studentId: "STU002",
+    course: "Information Technology",
+    phone: "9876543211",
+    address: "Howrah, West Bengal",
+    dateOfBirth: new Date("2005-02-20"),
+    gender: "Female",
+    admissionDate: new Date("2025-07-01"),
+    status: "active",
+    totalFees: 5_500_000,
+    dueFees: 500_000,
+  },
+  {
+    name: "Arjun Roy",
+    username: "arjun.student",
+    email: "arjun.student@example.com",
+    fullName: "Arjun Roy",
+    studentId: "STU003",
+    course: "Data Science",
+    phone: "9876543212",
+    address: "Salt Lake, Kolkata",
+    dateOfBirth: new Date("2004-11-10"),
+    gender: "Male",
+    admissionDate: new Date("2025-07-01"),
+    status: "active",
+    totalFees: 6_000_000,
+    dueFees: 2_000_000,
+  },
+];
 
 async function seedStudents() {
   console.log("\n👨‍🎓 Creating students...");
-
-  const students = [
-    {
-      name: "Rahul Sharma",
-      username: "rahul.student",
-      email: "rahul.student@example.com",
-      password: "Student@123",
-      fullName: "Rahul Sharma",
-      studentId: "STU001",
-      course: "Computer Science",
-      phone: "9876543210",
-      address: "Kolkata, West Bengal",
-      dateOfBirth: new Date("2004-05-15"),
-      gender: "Male",
-      admissionDate: new Date("2025-07-01"),
-      status: "active",
-      totalFees: "50000",
-      dueFees: "12000",
-    },
-
-    {
-      name: "Priya Das",
-      username: "priya.student",
-      email: "priya.student@example.com",
-      password: "Student@123",
-      fullName: "Priya Das",
-      studentId: "STU002",
-      course: "Information Technology",
-      phone: "9876543211",
-      address: "Howrah, West Bengal",
-      dateOfBirth: new Date("2005-02-20"),
-      gender: "Female",
-      admissionDate: new Date("2025-07-01"),
-      status: "active",
-      totalFees: "55000",
-      dueFees: "5000",
-    },
-
-    {
-      name: "Arjun Roy",
-      username: "arjun.student",
-      email: "arjun.student@example.com",
-      password: "Student@123",
-      fullName: "Arjun Roy",
-      studentId: "STU003",
-      course: "Data Science",
-      phone: "9876543212",
-      address: "Salt Lake, Kolkata",
-      dateOfBirth: new Date("2004-11-10"),
-      gender: "Male",
-      admissionDate: new Date("2025-07-01"),
-      status: "active",
-      totalFees: "60000",
-      dueFees: "20000",
-    },
-  ];
 
   for (const student of students) {
     const user = await createUser({
       name: student.name,
       email: student.email,
       username: student.username,
-      password: student.password,
+      password: studentPassword,
       role: "student",
     });
 
@@ -215,55 +250,52 @@ async function seedStudents() {
   }
 }
 
-/*
-|--------------------------------------------------------------------------
-| TEACHERS
-|--------------------------------------------------------------------------
-*/
+/**
+ * --------------------------------------------------------------------------
+ * TEACHERS
+ * --------------------------------------------------------------------------
+ */
+
+const teachers = [
+  {
+    name: "Amit Sen",
+    username: "amit.teacher",
+    email: "amit.teacher@example.com",
+    fullName: "Amit Sen",
+    teacherId: "TCH001",
+    department: "Computer Science",
+    phone: "9876543220",
+    address: "Kolkata, West Bengal",
+    dateOfBirth: new Date("1988-04-12"),
+    gender: "Male",
+    joiningDate: new Date("2024-07-01"),
+    status: "active",
+  },
+  {
+    name: "Sneha Mukherjee",
+    username: "sneha.teacher",
+    email: "sneha.teacher@example.com",
+    fullName: "Sneha Mukherjee",
+    teacherId: "TCH002",
+    department: "Information Technology",
+    phone: "9876543221",
+    address: "New Town, Kolkata",
+    dateOfBirth: new Date("1990-09-18"),
+    gender: "Female",
+    joiningDate: new Date("2024-07-01"),
+    status: "active",
+  },
+];
 
 async function seedTeachers() {
   console.log("\n👨‍🏫 Creating teachers...");
-
-  const teachers = [
-    {
-      name: "Amit Sen",
-      username: "amit.teacher",
-      email: "amit.teacher@example.com",
-      password: "Teacher@123",
-      fullName: "Amit Sen",
-      teacherId: "TCH001",
-      department: "Computer Science",
-      phone: "9876543220",
-      address: "Kolkata, West Bengal",
-      dateOfBirth: new Date("1988-04-12"),
-      gender: "Male",
-      joiningDate: new Date("2024-07-01"),
-      status: "active",
-    },
-
-    {
-      name: "Sneha Mukherjee",
-      username: "sneha.teacher",
-      email: "sneha.teacher@example.com",
-      password: "Teacher@123",
-      fullName: "Sneha Mukherjee",
-      teacherId: "TCH002",
-      department: "Information Technology",
-      phone: "9876543221",
-      address: "New Town, Kolkata",
-      dateOfBirth: new Date("1990-09-18"),
-      gender: "Female",
-      joiningDate: new Date("2024-07-01"),
-      status: "active",
-    },
-  ];
 
   for (const teacher of teachers) {
     const user = await createUser({
       name: teacher.name,
       email: teacher.email,
       username: teacher.username,
-      password: teacher.password,
+      password: teacherPassword,
       role: "teacher",
     });
 
@@ -299,11 +331,11 @@ async function seedTeachers() {
   }
 }
 
-/*
-|--------------------------------------------------------------------------
-| MAIN
-|--------------------------------------------------------------------------
-*/
+/**
+ * --------------------------------------------------------------------------
+ * MAIN
+ * --------------------------------------------------------------------------
+ */
 
 async function main() {
   console.log("======================================");
@@ -317,24 +349,6 @@ async function main() {
   console.log("\n======================================");
   console.log("✅ Database seed completed!");
   console.log("======================================");
-
-  console.log("\n🔐 TEST LOGIN ACCOUNTS");
-  console.log("--------------------------------------");
-
-  console.log("\nADMIN");
-  console.log("Username: admin@2005");
-  console.log("Password: password");
-
-  console.log("\nSTUDENTS");
-  console.log("rahul.student / Student@123");
-  console.log("priya.student / Student@123");
-  console.log("arjun.student / Student@123");
-
-  console.log("\nTEACHERS");
-  console.log("amit.teacher / Teacher@123");
-  console.log("sneha.teacher / Teacher@123");
-
-  console.log("\n======================================");
 }
 
 main()
