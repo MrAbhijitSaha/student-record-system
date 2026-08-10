@@ -35,7 +35,7 @@ const FormControllerField = ({
             type={type}
             aria-invalid={fieldState.invalid}
             placeholder={placeholder}
-            autoComplete="off"
+            autoComplete="username"
             className={cn(`${className} rounded`)}
           />
 
