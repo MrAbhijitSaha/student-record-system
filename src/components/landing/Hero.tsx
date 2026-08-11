@@ -25,7 +25,7 @@ const Hero = () => {
 
           <Link
             href="/auth/login"
-            className="bg-primary rounded p-4">
+            className="bg-primary hover:bg-primary/80 rounded p-4 text-white">
             Login to Your Account{" "}
           </Link>
         </div>
