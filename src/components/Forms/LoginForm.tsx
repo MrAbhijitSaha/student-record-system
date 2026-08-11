@@ -134,6 +134,7 @@ const LoginForm = ({ returnTo }: { returnTo?: string }) => {
         label="Student ID"
         placeholder="Enter your Student ID"
         type="text"
+        autoComplete="userName"
       />
 
       <div className="relative">
@@ -143,6 +144,7 @@ const LoginForm = ({ returnTo }: { returnTo?: string }) => {
           label="Password"
           type={showPassword ? "text" : "password"}
           placeholder="Enter your password"
+          autoComplete="off"
         />
         <Button
           aria-label={showPassword ? "Hide password" : "Show password"}

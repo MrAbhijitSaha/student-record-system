@@ -11,6 +11,7 @@ type FormControllerFieldProps = {
   type: React.HTMLInputTypeAttribute;
   placeholder?: string;
   className?: string;
+  autoComplete?: string;
 };
 
 const FormControllerField = ({
@@ -20,6 +21,7 @@ const FormControllerField = ({
   type,
   placeholder,
   className,
+  autoComplete,
 }: FormControllerFieldProps) => {
   return (
     <Controller
@@ -35,7 +37,7 @@ const FormControllerField = ({
             type={type}
             aria-invalid={fieldState.invalid}
             placeholder={placeholder}
-            autoComplete="username"
+            autoComplete={autoComplete}
             className={cn(`${className} rounded`)}
           />
 
