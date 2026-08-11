@@ -6,13 +6,11 @@ import { redirect } from "next/navigation";
 
 type LoginPageProps = {
   searchParams: Promise<{
-    returnTo?: string;
+    returnTo?: string | string[];
   }>;
 };
 
 const page = async ({ searchParams }: LoginPageProps) => {
-  const { returnTo } = await searchParams;
-
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -35,6 +33,11 @@ const page = async ({ searchParams }: LoginPageProps) => {
     redirect("/");
   }
 
+  const { returnTo } = await searchParams;
+
+  const normalizedReturnTo =
+    typeof returnTo === "string" ? returnTo : undefined;
+
   return (
     <div className="flex h-dvh w-full flex-col items-center justify-evenly md:flex-row">
       <div className="w-full text-center md:w-[50%]">
@@ -49,7 +52,7 @@ const page = async ({ searchParams }: LoginPageProps) => {
 
         <Card className="bg-transparent backdrop-blur">
           <CardContent>
-            <LoginForm returnTo={returnTo} />
+            <LoginForm returnTo={normalizedReturnTo} />
           </CardContent>
         </Card>
       </div>
