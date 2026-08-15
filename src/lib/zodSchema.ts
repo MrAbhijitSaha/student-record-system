@@ -10,61 +10,47 @@ export const loginFormSchema = z.object({
   }),
 });
 
-export const AddTeacherAndStudentForm = z.object({});
-
 export const addTeacherAndStudentSchema = z.object({
-  idNumber: z
-    .string()
-    .trim()
-    .min(1, "Student/Teacher ID is required")
-    .max(50, "ID is too long"),
+  role: z.enum(["student", "teacher"], {
+    error: "Please select a role",
+  }),
+
+  idNumber: z.string().min(8, "ID is required").max(8, "ID is too long"),
 
   fullName: z
     .string()
-    .trim()
-    .min(2, "Full name must be at least 2 characters")
+    .min(2, "Full name is required")
     .max(100, "Full name is too long"),
 
-  email: z.string().trim().email("Please enter a valid email address"),
+  email: z.email("Enter a valid email address"),
 
   phone: z
     .string()
-    .trim()
-    .min(10, "Phone number must be at least 10 digits")
-    .max(15, "Phone number is too long"),
+    .min(10, "Phone number is required")
+    .max(10, "Phone number is too long"),
 
   address: z
     .string()
-    .trim()
-    .min(5, "Address must be at least 5 characters")
-    .max(300, "Address is too long"),
+    .min(1, "Address is required")
+    .max(500, "Address is too long"),
 
   dateOfBirth: z.string().min(1, "Date of birth is required"),
 
   gender: z.enum(["male", "female", "other"], {
-    error: "Please select a gender",
+    error: "Please select gender",
   }),
 
-  admissionDate: z.string().min(1, "Admission date is required"),
+  admissionDate: z.string().min(1, "Admission/joining date is required"),
 
-  course: z
-    .string()
-    .trim()
-    .min(2, "Course is required")
-    .max(100, "Course is too long"),
+  course: z.string().min(2, "Course is required"),
 
   status: z.enum(["active", "inactive"], {
-    error: "Please select a status",
+    error: "Please select status",
   }),
 
-  totalFees: z.coerce.number().min(0, "Total fees cannot be negative"),
+  totalFees: z.string().min(0, "Fees cannot be negative"),
 
-  dueFees: z.coerce.number().min(0, "Due fees cannot be negative"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
 
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(100, "Password is too long"),
-
-  photo: z.instanceof(File).optional(),
+  photo: z.instanceof(File),
 });

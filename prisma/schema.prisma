@@ -104,7 +104,6 @@ model Student {
   status        String
 
   totalFees Int
-  dueFees   Int
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -121,7 +120,6 @@ model Teacher {
   teacherId   String    @unique
   fullName    String
   photo       String?
-  department  String
   phone       String?
   email       String
   address     String?
