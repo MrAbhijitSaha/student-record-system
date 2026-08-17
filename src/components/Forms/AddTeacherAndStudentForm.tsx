@@ -235,6 +235,7 @@ const AddTeacherAndStudentForm = ({
             />
 
             <Button
+              type="button"
               aria-label={showPassword ? "Hide password" : "Show password"}
               aria-pressed={showPassword}
               onClick={() => setShowPassword(!showPassword)}
