@@ -48,7 +48,18 @@ export const addTeacherAndStudentSchema = z.object({
     error: "Please select status",
   }),
 
-  totalFees: z.string().min(0, "Fees cannot be negative"),
+  totalFees: z
+    .string()
+    .min(1, "Total fees is required")
+    .refine((value) => /^\d+$/.test(value), {
+      message: "Fees must be a valid integer",
+    })
+    .refine((value) => Number.isSafeInteger(Number(value)), {
+      message: "Fees must be a valid integer",
+    })
+    .refine((value) => Number(value) >= 0, {
+      message: "Fees cannot be negative",
+    }),
 
   password: z.string().min(8, "Password must be at least 8 characters"),
 
