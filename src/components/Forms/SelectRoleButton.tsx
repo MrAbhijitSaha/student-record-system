@@ -1,7 +1,6 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { Button } from "../shadcnui/button";
 
 type Role = "student" | "teacher";
 
@@ -25,7 +24,7 @@ const SelectRoleButton = ({
   const isSelected = currentValue === value;
 
   return (
-    <Button
+    <button
       type="button"
       onClick={() => onChange(value)}
       aria-pressed={isSelected}
@@ -52,7 +51,7 @@ const SelectRoleButton = ({
           <p className="text-muted-foreground text-sm">{description}</p>
         </div>
       </div>
-    </Button>
+    </button>
   );
 };
 
