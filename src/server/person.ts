@@ -264,11 +264,15 @@ export async function createTeacherOrStudent(
       console.error("Profile creation failed:", profileError);
 
       // Delete Better Auth user if profile creation fails
-      await prisma.user.delete({
-        where: {
-          id: userId,
-        },
-      });
+      try {
+        await prisma.user.delete({ where: { id: userId } });
+      } catch (rollbackError) {
+        console.error(
+          "Rollback failed. Orphaned auth user:",
+          userId,
+          rollbackError,
+        );
+      }
 
       return {
         success: false,
