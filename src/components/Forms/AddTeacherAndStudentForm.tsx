@@ -91,17 +91,21 @@ const AddTeacherAndStudentForm = ({
   const isStudent = role === "student";
 
   const handleFormSubmit = async (values: AddTeacherAndStudentFormValues) => {
-    const formData = createFormData(values);
-    const result = await createTeacherOrStudent(formData);
+    try {
+      const formData = createFormData(values);
+      const result = await createTeacherOrStudent(formData);
 
-    if (!result.success) {
-      toast.error(result.message);
-      return;
+      if (!result?.success) {
+        toast.error(result?.message ?? "Something went wrong.");
+        return;
+      }
+
+      toast.success(result.message);
+      router.refresh();
+      router.push("/admin/students");
+    } catch {
+      toast.error("Could not reach the server. Please try again.");
     }
-
-    toast.success(result.message);
-    router.refresh();
-    router.push("/admin/students");
   };
 
   return (
