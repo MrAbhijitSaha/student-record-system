@@ -15,7 +15,10 @@ export const addTeacherAndStudentSchema = z.object({
     error: "Please select a role",
   }),
 
-  idNumber: z.string().min(8, "ID is required").max(8, "ID is too long"),
+  idNumber: z
+    .string()
+    .min(8, "ID is 8 charecters")
+    .max(8, "ID is 8 charecters"),
 
   fullName: z
     .string()

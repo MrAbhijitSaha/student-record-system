@@ -4,6 +4,8 @@ import { headers } from "next/headers";
 
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/database/dbClient";
+import { addTeacherAndStudentSchema } from "@/lib/zodSchema";
+import { Prisma } from "@generated/prisma/client";
 import { saveProfilePicture } from "./saveProfilePicture";
 
 type ActionResult = {
@@ -12,9 +14,16 @@ type ActionResult = {
   id?: string;
 };
 
+const MAX_PHOTO_SIZE = 5 * 1024 * 1024;
+
+const ALLOWED_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
 export async function createTeacherOrStudent(
   formData: FormData,
 ): Promise<ActionResult> {
+  let photoPath: string | null = null;
+  let userId: string | null = null;
+
   try {
     // -----------------------------------------
     // 1. Authentication
@@ -43,58 +52,52 @@ export async function createTeacherOrStudent(
     }
 
     // -----------------------------------------
-    // 3. Get form values
+    // 3. Server-side validation
     // -----------------------------------------
 
-    const role = formData.get("role");
-    const idNumber = formData.get("idNumber");
-    const fullName = formData.get("fullName");
-    const email = formData.get("email");
-    const password = formData.get("password");
-    const phone = formData.get("phone");
-    const address = formData.get("address");
-    const dateOfBirth = formData.get("dateOfBirth");
-    const gender = formData.get("gender");
-    const admissionDate = formData.get("admissionDate");
+    const payload = Object.fromEntries(formData.entries());
 
-    const course = formData.get("course");
-    const status = formData.get("status");
-    const totalFees = formData.get("totalFees");
+    const parsed = addTeacherAndStudentSchema.safeParse(payload);
 
-    const photo = formData.get("photo");
-
-    // -----------------------------------------
-    // 4. Basic validation
-    // -----------------------------------------
-
-    if (
-      typeof role !== "string" ||
-      typeof idNumber !== "string" ||
-      typeof fullName !== "string" ||
-      typeof email !== "string" ||
-      typeof password !== "string"
-    ) {
+    if (!parsed.success) {
       return {
         success: false,
-        message: "Required fields are missing.",
+        message: "Please check the submitted values.",
       };
     }
 
-    if (role !== "student" && role !== "teacher") {
-      return {
-        success: false,
-        message: "Invalid account role.",
-      };
+    const data = parsed.data;
+
+    // -----------------------------------------
+    // 4. Photo validation
+    // -----------------------------------------
+
+    const photo = data.photo;
+
+    if (photo instanceof File && photo.size > 0) {
+      if (photo.size > MAX_PHOTO_SIZE) {
+        return {
+          success: false,
+          message: "Photo must be smaller than 5 MB.",
+        };
+      }
+
+      if (!ALLOWED_PHOTO_TYPES.includes(photo.type)) {
+        return {
+          success: false,
+          message: "Only JPG, PNG, and WebP images are allowed.",
+        };
+      }
     }
 
     // -----------------------------------------
     // 5. Check Student / Teacher ID
     // -----------------------------------------
 
-    if (role === "student") {
+    if (data.role === "student") {
       const existingStudent = await prisma.student.findUnique({
         where: {
-          studentId: idNumber,
+          studentId: data.idNumber,
         },
       });
 
@@ -106,10 +109,10 @@ export async function createTeacherOrStudent(
       }
     }
 
-    if (role === "teacher") {
+    if (data.role === "teacher") {
       const existingTeacher = await prisma.teacher.findUnique({
         where: {
-          teacherId: idNumber,
+          teacherId: data.idNumber,
         },
       });
 
@@ -127,7 +130,7 @@ export async function createTeacherOrStudent(
 
     const existingUser = await prisma.user.findUnique({
       where: {
-        email,
+        email: data.email,
       },
     });
 
@@ -142,8 +145,6 @@ export async function createTeacherOrStudent(
     // 7. Save profile picture
     // -----------------------------------------
 
-    let photoPath: string | null = null;
-
     if (photo instanceof File && photo.size > 0) {
       photoPath = await saveProfilePicture(photo);
     }
@@ -156,100 +157,67 @@ export async function createTeacherOrStudent(
       headers: await headers(),
 
       body: {
-        name: fullName,
-        email,
-        password,
-        role,
+        name: data.fullName,
+        email: data.email,
+        password: data.password,
+        role: data.role,
 
         data: {
-          username: idNumber,
-          displayUsername: idNumber,
+          username: data.idNumber,
+          displayUsername: data.idNumber,
         },
       },
     });
 
     if (!result?.user) {
+      if (photoPath) {
+        // Clean up uploaded photo if account creation fails.
+        // Keep this cleanup best-effort.
+        try {
+          // Add your deleteProfilePicture helper here.
+        } catch (cleanupError) {
+          console.error("Photo cleanup failed:", cleanupError);
+        }
+      }
+
       return {
         success: false,
         message: "Failed to create account.",
       };
     }
 
-    const userId = result.user.id;
+    userId = result.user.id;
 
     // -----------------------------------------
     // 9. Create profile
     // -----------------------------------------
 
-    try {
-      if (role === "student") {
-        const student = await prisma.student.create({
-          data: {
-            userId,
+    if (data.role === "student") {
+      const totalFees = Number(data.totalFees);
 
-            studentId: idNumber,
-            fullName,
-
-            email,
-            phone: typeof phone === "string" && phone ? phone : null,
-
-            address: typeof address === "string" && address ? address : null,
-
-            course: typeof course === "string" ? course : "",
-
-            dateOfBirth:
-              typeof dateOfBirth === "string" && dateOfBirth ?
-                new Date(dateOfBirth)
-              : null,
-
-            admissionDate:
-              typeof admissionDate === "string" && admissionDate ?
-                new Date(admissionDate)
-              : null,
-
-            gender: typeof gender === "string" ? gender : null,
-
-            status: typeof status === "string" ? status : "active",
-
-            totalFees: typeof totalFees === "string" ? Number(totalFees) : 0,
-
-            photo: photoPath,
-          },
-        });
-
-        return {
-          success: true,
-          message: "Student created successfully.",
-          id: student.id,
-        };
-      }
-
-      const teacher = await prisma.teacher.create({
+      const student = await prisma.student.create({
         data: {
           userId,
 
-          teacherId: idNumber,
-          fullName,
+          studentId: data.idNumber,
+          fullName: data.fullName,
 
-          email,
+          email: data.email,
 
-          phone: typeof phone === "string" && phone ? phone : null,
+          phone: data.phone || null,
+          address: data.address || null,
 
-          address: typeof address === "string" && address ? address : null,
+          course: data.course,
 
-          dateOfBirth:
-            typeof dateOfBirth === "string" && dateOfBirth ?
-              new Date(dateOfBirth)
-            : null,
+          dateOfBirth: new Date(data.dateOfBirth),
 
-          joiningDate:
-            typeof admissionDate === "string" && admissionDate ?
-              new Date(admissionDate)
-            : null,
+          admissionDate: new Date(data.admissionDate),
 
-          gender: typeof gender === "string" ? gender : null,
+          gender: data.gender,
 
-          status: typeof status === "string" ? status : "active",
+          status: data.status,
+
+          totalFees,
 
           photo: photoPath,
         },
@@ -257,15 +225,94 @@ export async function createTeacherOrStudent(
 
       return {
         success: true,
-        message: "Teacher created successfully.",
-        id: teacher.id,
+        message: "Student created successfully.",
+        id: student.id,
       };
-    } catch (profileError) {
-      console.error("Profile creation failed:", profileError);
+    }
 
-      // Delete Better Auth user if profile creation fails
+    const teacher = await prisma.teacher.create({
+      data: {
+        userId,
+
+        teacherId: data.idNumber,
+        fullName: data.fullName,
+
+        email: data.email,
+
+        phone: data.phone || null,
+        address: data.address || null,
+
+        dateOfBirth: new Date(data.dateOfBirth),
+
+        joiningDate: new Date(data.admissionDate),
+
+        gender: data.gender,
+
+        status: data.status,
+
+        photo: photoPath,
+      },
+    });
+
+    return {
+      success: true,
+      message: "Teacher created successfully.",
+      id: teacher.id,
+    };
+  } catch (error) {
+    console.error("Create teacher/student error:", error);
+
+    // -----------------------------------------
+    // 10. Prisma unique constraint
+    // -----------------------------------------
+
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      const target =
+        Array.isArray(error.meta?.target) ?
+          error.meta.target.join(",")
+        : String(error.meta?.target ?? "");
+
+      if (target.includes("email")) {
+        return {
+          success: false,
+          message: "An account with this email already exists.",
+        };
+      }
+
+      if (target.includes("studentId")) {
+        return {
+          success: false,
+          message: "This Student ID already exists.",
+        };
+      }
+
+      if (target.includes("teacherId")) {
+        return {
+          success: false,
+          message: "This Teacher ID already exists.",
+        };
+      }
+
+      return {
+        success: false,
+        message: "Some submitted information already exists.",
+      };
+    }
+
+    // -----------------------------------------
+    // 11. Rollback Better Auth user
+    // -----------------------------------------
+
+    if (userId) {
       try {
-        await prisma.user.delete({ where: { id: userId } });
+        await prisma.user.delete({
+          where: {
+            id: userId,
+          },
+        });
       } catch (rollbackError) {
         console.error(
           "Rollback failed. Orphaned auth user:",
@@ -273,14 +320,11 @@ export async function createTeacherOrStudent(
           rollbackError,
         );
       }
-
-      return {
-        success: false,
-        message: "Account was not created because profile creation failed.",
-      };
     }
-  } catch (error) {
-    console.error("Create teacher/student error:", error);
+
+    // -----------------------------------------
+    // 12. Never expose internal errors
+    // -----------------------------------------
 
     return {
       success: false,
