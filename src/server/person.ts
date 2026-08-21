@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/database/dbClient";
+import { rollbackUser } from "@/lib/rollbackUser";
 import { addTeacherAndStudentSchema } from "@/lib/zodSchema";
 import { Prisma } from "@generated/prisma/client";
 import { saveProfilePicture } from "./saveProfilePicture";
@@ -262,10 +263,6 @@ export async function createTeacherOrStudent(
   } catch (error) {
     console.error("Create teacher/student error:", error);
 
-    // -----------------------------------------
-    // 10. Prisma unique constraint
-    // -----------------------------------------
-
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"
@@ -274,6 +271,8 @@ export async function createTeacherOrStudent(
         Array.isArray(error.meta?.target) ?
           error.meta.target.join(",")
         : String(error.meta?.target ?? "");
+
+      await rollbackUser(userId);
 
       if (target.includes("email")) {
         return {
@@ -302,29 +301,7 @@ export async function createTeacherOrStudent(
       };
     }
 
-    // -----------------------------------------
-    // 11. Rollback Better Auth user
-    // -----------------------------------------
-
-    if (userId) {
-      try {
-        await prisma.user.delete({
-          where: {
-            id: userId,
-          },
-        });
-      } catch (rollbackError) {
-        console.error(
-          "Rollback failed. Orphaned auth user:",
-          userId,
-          rollbackError,
-        );
-      }
-    }
-
-    // -----------------------------------------
-    // 12. Never expose internal errors
-    // -----------------------------------------
+    await rollbackUser(userId);
 
     return {
       success: false,
