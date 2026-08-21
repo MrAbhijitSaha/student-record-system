@@ -3,8 +3,8 @@ import z from "zod";
 export const loginFormSchema = z.object({
   userName: z
     .string()
-    .min(8, { error: "Your Id can not less than 8 charecters" })
-    .max(88, { error: "Your Id can not more than 8 charecters" }),
+    .min(8, { error: "Your Id can not less than 8 characters" })
+    .max(88, { error: "Your Id can not more than 8 characters" }),
   password: z.string().min(8, {
     error: "Password must be at least 8 characters",
   }),
@@ -17,8 +17,8 @@ export const addTeacherAndStudentSchema = z.object({
 
   idNumber: z
     .string()
-    .min(8, "ID is 8 charecters")
-    .max(8, "ID is 8 charecters"),
+    .min(8, "ID is 8 characters")
+    .max(8, "ID is 8 characters"),
 
   fullName: z
     .string()
