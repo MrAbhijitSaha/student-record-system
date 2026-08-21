@@ -38,6 +38,12 @@ if (!teacherPassword) {
   throw new Error("TEACHER_PASSWORD must be defined in .env");
 }
 
+const adminEmailValue: string = adminEmail;
+const adminPasswordValue: string = adminPassword;
+const adminUsernameValue: string = adminUsername;
+const studentPasswordValue: string = studentPassword;
+const teacherPasswordValue: string = teacherPassword;
+
 /**
  * --------------------------------------------------------------------------
  * CREATE USER
@@ -130,9 +136,9 @@ async function seedAdmin() {
 
   const admin = await createUser({
     name: "Administrator",
-    email: adminEmail,
-    username: adminUsername,
-    password: adminPassword,
+    email: adminEmailValue,
+    username: adminUsernameValue,
+    password: adminPasswordValue,
     role: "admin",
   });
 
@@ -168,7 +174,6 @@ const students = [
     admissionDate: new Date("2025-07-01"),
     status: "active",
     totalFees: 5_000_000,
-    dueFees: 1_200_000,
   },
   {
     name: "Priya Das",
@@ -184,7 +189,6 @@ const students = [
     admissionDate: new Date("2025-07-01"),
     status: "active",
     totalFees: 5_500_000,
-    dueFees: 500_000,
   },
   {
     name: "Arjun Roy",
@@ -200,7 +204,6 @@ const students = [
     admissionDate: new Date("2025-07-01"),
     status: "active",
     totalFees: 6_000_000,
-    dueFees: 2_000_000,
   },
 ];
 
@@ -212,7 +215,7 @@ async function seedStudents() {
       name: student.name,
       email: student.email,
       username: student.username,
-      password: studentPassword,
+      password: studentPasswordValue,
       role: "student",
     });
 
@@ -242,7 +245,6 @@ async function seedStudents() {
         admissionDate: student.admissionDate,
         status: student.status,
         totalFees: student.totalFees,
-        dueFees: student.dueFees,
       },
     });
 
@@ -263,7 +265,7 @@ const teachers = [
     email: "amit.teacher@example.com",
     fullName: "Amit Sen",
     teacherId: "TCH001",
-    department: "Computer Science",
+
     phone: "9876543220",
     address: "Kolkata, West Bengal",
     dateOfBirth: new Date("1988-04-12"),
@@ -277,7 +279,7 @@ const teachers = [
     email: "sneha.teacher@example.com",
     fullName: "Sneha Mukherjee",
     teacherId: "TCH002",
-    department: "Information Technology",
+
     phone: "9876543221",
     address: "New Town, Kolkata",
     dateOfBirth: new Date("1990-09-18"),
@@ -295,7 +297,7 @@ async function seedTeachers() {
       name: teacher.name,
       email: teacher.email,
       username: teacher.username,
-      password: teacherPassword,
+      password: teacherPasswordValue,
       role: "teacher",
     });
 
@@ -316,7 +318,7 @@ async function seedTeachers() {
         teacherId: teacher.teacherId,
         fullName: teacher.fullName,
         photo: null,
-        department: teacher.department,
+
         phone: teacher.phone,
         email: teacher.email,
         address: teacher.address,

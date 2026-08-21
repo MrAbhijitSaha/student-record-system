@@ -6,7 +6,13 @@ CREATE TABLE "user" (
     "emailVerified" BOOLEAN NOT NULL DEFAULT false,
     "image" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "updatedAt" DATETIME NOT NULL,
+    "username" TEXT,
+    "displayUsername" TEXT,
+    "role" TEXT,
+    "banned" BOOLEAN DEFAULT false,
+    "banReason" TEXT,
+    "banExpires" DATETIME
 );
 
 -- CreateTable
@@ -19,6 +25,7 @@ CREATE TABLE "session" (
     "ipAddress" TEXT,
     "userAgent" TEXT,
     "userId" TEXT NOT NULL,
+    "impersonatedBy" TEXT,
     CONSTRAINT "session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -50,8 +57,51 @@ CREATE TABLE "verification" (
     "updatedAt" DATETIME NOT NULL
 );
 
+-- CreateTable
+CREATE TABLE "student" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "fullName" TEXT NOT NULL,
+    "studentId" TEXT NOT NULL,
+    "photo" TEXT,
+    "course" TEXT NOT NULL,
+    "phone" TEXT,
+    "email" TEXT NOT NULL,
+    "address" TEXT,
+    "dateOfBirth" DATETIME,
+    "gender" TEXT,
+    "admissionDate" DATETIME,
+    "status" TEXT NOT NULL,
+    "totalFees" INTEGER NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "student_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "teacher" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "teacherId" TEXT NOT NULL,
+    "fullName" TEXT NOT NULL,
+    "photo" TEXT,
+    "phone" TEXT,
+    "email" TEXT NOT NULL,
+    "address" TEXT,
+    "dateOfBirth" DATETIME,
+    "gender" TEXT,
+    "joiningDate" DATETIME,
+    "status" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "teacher_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "user_email_key" ON "user"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "user_username_key" ON "user"("username");
 
 -- CreateIndex
 CREATE INDEX "session_userId_idx" ON "session"("userId");
@@ -64,3 +114,15 @@ CREATE INDEX "account_userId_idx" ON "account"("userId");
 
 -- CreateIndex
 CREATE INDEX "verification_identifier_idx" ON "verification"("identifier");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "student_userId_key" ON "student"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "student_studentId_key" ON "student"("studentId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "teacher_userId_key" ON "teacher"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "teacher_teacherId_key" ON "teacher"("teacherId");
